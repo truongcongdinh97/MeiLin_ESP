@@ -129,6 +129,130 @@ std::pair<std::string, std::string> MeiLinClient::SendChat(
     return {response_text, audio_url};
 }
 
+// ============================================================
+// PUBLIC RAG API Implementation
+// ============================================================
+
+std::string MeiLinClient::RegisterDevice(const std::string& device_name) {
+    char json_buffer[512];
+    snprintf(json_buffer, sizeof(json_buffer),
+             "{\"device_id\":\"%s\",\"device_name\":\"%s\"}",
+             device_id_.c_str(),
+             device_name.empty() ? device_id_.c_str() : device_name.c_str());
+    
+    char response[2048] = {0};
+    int status = HttpPost("/public/register", json_buffer, response, sizeof(response));
+    
+    if (status != 201) {
+        ESP_LOGE(TAG, "Failed to register device, status: %d", status);
+        return "";
+    }
+    
+    // Parse JSON response
+    cJSON *json = cJSON_Parse(response);
+    if (json == NULL) {
+        ESP_LOGE(TAG, "Failed to parse registration response");
+        return "";
+    }
+    
+    std::string api_key;
+    cJSON *key_item = cJSON_GetObjectItem(json, "api_key");
+    if (key_item && cJSON_IsString(key_item)) {
+        api_key = key_item->valuestring;
+        api_key_ = api_key;  // Save locally
+        ESP_LOGI(TAG, "Device registered successfully, API key: %s...", 
+                 api_key.substr(0, 20).c_str());
+    }
+    
+    cJSON_Delete(json);
+    return api_key;
+}
+
+std::string MeiLinClient::QueryRAG(const std::string& query, int top_k) {
+    if (api_key_.empty()) {
+        ESP_LOGW(TAG, "No API key set, cannot query RAG");
+        return "";
+    }
+    
+    // Limit top_k
+    if (top_k > 5) top_k = 5;
+    if (top_k < 1) top_k = 1;
+    
+    char json_buffer[2048];
+    snprintf(json_buffer, sizeof(json_buffer),
+             "{\"query\":\"%s\",\"top_k\":%d}",
+             query.c_str(), top_k);
+    
+    char response[MAX_HTTP_OUTPUT_BUFFER] = {0};
+    int status = HttpPostWithApiKey("/public/rag/query", json_buffer, response, sizeof(response));
+    
+    if (status != 200) {
+        ESP_LOGE(TAG, "RAG query failed, status: %d", status);
+        return "";
+    }
+    
+    // Parse JSON response
+    cJSON *json = cJSON_Parse(response);
+    if (json == NULL) {
+        ESP_LOGE(TAG, "Failed to parse RAG response");
+        return "";
+    }
+    
+    std::string context;
+    cJSON *results = cJSON_GetObjectItem(json, "results");
+    if (results && cJSON_IsArray(results)) {
+        int count = cJSON_GetArraySize(results);
+        for (int i = 0; i < count; i++) {
+            cJSON *item = cJSON_GetArrayItem(results, i);
+            cJSON *content = cJSON_GetObjectItem(item, "content");
+            if (content && cJSON_IsString(content)) {
+                if (!context.empty()) context += "\n---\n";
+                context += content->valuestring;
+            }
+        }
+    }
+    
+    cJSON_Delete(json);
+    
+    ESP_LOGI(TAG, "RAG query returned %zu characters of context", context.length());
+    return context;
+}
+
+int MeiLinClient::HttpPostWithApiKey(
+    const std::string& endpoint,
+    const char* json_payload,
+    char* response_buffer,
+    size_t buffer_size) {
+    
+    std::string url = backend_url_ + endpoint;
+    
+    esp_http_client_config_t config = {};
+    config.url = url.c_str();
+    config.event_handler = _http_event_handler;
+    config.user_data = response_buffer;
+    config.timeout_ms = 10000;
+    
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_set_header(client, "X-API-Key", api_key_.c_str());
+    esp_http_client_set_post_field(client, json_payload, strlen(json_payload));
+    
+    esp_err_t err = esp_http_client_perform(client);
+    int status_code = 0;
+    
+    if (err == ESP_OK) {
+        status_code = esp_http_client_get_status_code(client);
+        ESP_LOGI(TAG, "HTTP POST (with API key) Status = %d", status_code);
+    } else {
+        ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
+    }
+    
+    esp_http_client_cleanup(client);
+    return status_code;
+}
+
 std::pair<std::string, std::string> MeiLinClient::SendCommand(
     const std::string& command,
     const std::string& username) {

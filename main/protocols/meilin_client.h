@@ -11,17 +11,64 @@
  * 
  * This client handles:
  * - Wake word event notification
- * - Chat message exchange
+ * - Chat message exchange  
  * - Audio file download from backend
+ * - PUBLIC RAG API: Query knowledge base (read-only, with API key)
+ * 
+ * Hybrid Mode (ESP-only users):
+ * - Use MeiLin Public RAG API for knowledge base
+ * - Use XiaoZhi Cloud for LLM/TTS (free)
  */
 class MeiLinClient {
 public:
     /**
      * Constructor
-     * @param backend_url MeiLin backend URL (e.g., http://192.168.1.100:5000)
+     * @param backend_url MeiLin backend URL (e.g., https://meilin.your-domain.com)
      * @param device_id Unique device identifier
      */
     MeiLinClient(const std::string& backend_url, const std::string& device_id);
+    
+    /**
+     * Destructor
+     */
+    ~MeiLinClient();
+    
+    // ============================================================
+    // PUBLIC RAG API (Read-only, requires API key)
+    // For ESP-only users who want MeiLin knowledge + XiaoZhi LLM
+    // ============================================================
+    
+    /**
+     * Register device to get API key
+     * Call this once per device, save the API key in NVS
+     * @param device_name Optional device name
+     * @return API key string, empty if failed
+     */
+    std::string RegisterDevice(const std::string& device_name = "");
+    
+    /**
+     * Set API key (load from NVS or manual set)
+     * @param api_key API key from RegisterDevice
+     */
+    void SetApiKey(const std::string& api_key) { api_key_ = api_key; }
+    
+    /**
+     * Get current API key
+     */
+    const std::string& GetApiKey() const { return api_key_; }
+    
+    /**
+     * Query MeiLin knowledge base (PUBLIC API)
+     * Returns relevant context to enhance XiaoZhi responses
+     * @param query User's question
+     * @param top_k Number of results (max 5)
+     * @return Context string from knowledge base
+     */
+    std::string QueryRAG(const std::string& query, int top_k = 3);
+    
+    // ============================================================
+    // PRIVATE API (Full access, for self-hosted users)
+    // ============================================================
     
     /**
      * Destructor
@@ -93,6 +140,7 @@ public:
 private:
     std::string backend_url_;
     std::string device_id_;
+    std::string api_key_;  // For public RAG API
     
     /**
      * Make HTTP POST request with JSON payload
@@ -116,6 +164,17 @@ private:
      * @return true if successful
      */
     bool HttpGet(const std::string& url, std::vector<uint8_t>& data_buffer);
+    
+    /**
+     * Make HTTP POST request with API key header
+     * For Public RAG API
+     */
+    int HttpPostWithApiKey(
+        const std::string& endpoint,
+        const char* json_payload,
+        char* response_buffer,
+        size_t buffer_size
+    );
     
     /**
      * Get current timestamp in ISO8601 format

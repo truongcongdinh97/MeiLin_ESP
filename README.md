@@ -9,14 +9,60 @@
 
 MeiLin ESP32 Firmware là firmware AI Voice Assistant, được thiết kế để tương thích hoàn toàn với **XiaoZhi hardware** (80+ boards). 
 
-### 🌟 Hai Chế Độ Sử Dụng
+### 🌟 Ba Chế Độ Sử Dụng
 
-| Mode | Backend | Chi phí | Tính năng |
-|------|---------|---------|-----------|
-| **XiaoZhi Mode** | XiaoZhi Cloud | **MIỄN PHÍ** | AI chat, TTS, Wake word |
-| **MeiLin Mode** | Self-hosted | Tùy API | Custom persona, Multi-user, Telegram |
+| Mode | LLM/TTS | Knowledge Base | Chi phí | Tính năng |
+|------|---------|----------------|---------|-----------|
+| **XiaoZhi Pure** | XiaoZhi Cloud | ❌ | **$0** | AI chat cơ bản |
+| **🆕 Hybrid Mode** | XiaoZhi Cloud | ✅ MeiLin RAG | **$0** | AI + Custom knowledge |
+| **MeiLin Full** | Self-hosted | ✅ Full | API costs | Full customization |
 
-> **💡 Mặc định firmware kết nối XiaoZhi Cloud - KHÔNG cần server riêng!**
+> **💡 Mới: Hybrid Mode cho phép dùng knowledge base của MeiLin MIỄN PHÍ + XiaoZhi LLM!**
+
+---
+
+## 🔥 Hybrid Mode (Recommended cho người mới)
+
+Chế độ này cho phép bạn:
+- ✅ **Dùng MeiLin knowledge base** (context về MeiLin persona)
+- ✅ **XiaoZhi LLM/TTS miễn phí** 
+- ✅ **Custom wake word**
+- ❌ Không cần tự host server
+
+### Cách hoạt động:
+```
+[ESP32] --query--> [MeiLin Public RAG API] --context--> [ESP32]
+                                                            |
+                                                            v
+                                                    [XiaoZhi Cloud]
+                                                            |
+                                                            v
+                                                    [Response + TTS]
+```
+
+### Đăng ký API key (1 lần):
+```bash
+curl -X POST https://meilin.truongcongdinh.org/public/register \
+  -H "Content-Type: application/json" \
+  -d '{"device_id": "my_esp32_001", "device_name": "Living Room MeiLin"}'
+```
+
+Response:
+```json
+{
+  "api_key": "meilin_pk_abc123...",
+  "message": "Save your API key!"
+}
+```
+
+### Cấu hình trong menuconfig:
+```
+→ MeiLin Configuration
+  → Public RAG API URL: https://meilin.truongcongdinh.org
+  → API Key: meilin_pk_abc123...
+```
+
+---
 
 ## ✨ Tính Năng
 
