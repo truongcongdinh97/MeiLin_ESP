@@ -1,0 +1,18 @@
+﻿# Build files
+build/
+sdkconfig.old
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Managed components cache
+managed_components/
+
+# Python
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
