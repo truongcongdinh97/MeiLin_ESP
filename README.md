@@ -60,7 +60,7 @@ MeiLin ESP32 Firmware là firmware chính thức cho hệ thống MeiLin AI, đ�
 ### Build Instructions
 ```bash
 # Clone repository
-git clone https://github.com/truongcongdinh97/PROJECT_MEILIN_AIVTUBER.git
+git clone https://github.com/YOUR_GITHUB_USERNAME/MeiLin_ESP.git
 cd PROJECT_MEILIN_AIVTUBER/meilin-esp32
 
 # Configure project
@@ -193,14 +193,14 @@ MeiLin ESP32 Firmware được phát hành dưới MIT License.
 
 ## 🔗 Links
 
-- **GitHub Repository**: https://github.com/truongcongdinh97/PROJECT_MEILIN_AIVTUBER
-- **Documentation**: https://github.com/truongcongdinh97/PROJECT_MEILIN_AIVTUBER/docs
-- **Issues**: https://github.com/truongcongdinh97/PROJECT_MEILIN_AIVTUBER/issues
+- **GitHub Repository**: https://github.com/YOUR_GITHUB_USERNAME/MeiLin_ESP
+- **Documentation**: https://github.com/YOUR_GITHUB_USERNAME/MeiLin_ESP/docs
+- **Issues**: https://github.com/YOUR_GITHUB_USERNAME/MeiLin_ESP/issues
 
 ## 🆘 Support
 
 Nếu bạn gặp vấn đề:
-1. Kiểm tra [Issues](https://github.com/truongcongdinh97/PROJECT_MEILIN_AIVTUBER/issues)
+1. Kiểm tra [Issues](https://github.com/YOUR_GITHUB_USERNAME/MeiLin_ESP/issues)
 2. Tạo new issue với detailed description
 3. Join community discussion
 
