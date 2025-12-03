@@ -6,6 +6,8 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 /**
  * @brief IoT Handler for XiaoZhi Hybrid Mode
@@ -86,6 +88,7 @@ private:
     bool available_ = false;
     std::unique_ptr<IoTController> controller_;
     IoTExecuteResult last_result_;
+    TickType_t last_health_check_ = 0;
 
     std::function<void(const std::string& text, const std::string& audio_url)> tts_callback_;
     std::function<void(const std::string& role, const std::string& message)> display_callback_;

@@ -135,7 +135,7 @@ IoTExecuteResult IoTController::ExecuteIoTCommand(
     IoTExecuteResult result = {false, "", "", ""};
     
     if (!IsConfigured()) {
-        result.error_message = "IoT Controller not configured";
+        result.error_message = "Hệ thống IoT chưa được cấu hình";
         ESP_LOGW(IOT_TAG, "%s", result.error_message.c_str());
         return result;
     }
@@ -152,8 +152,14 @@ IoTExecuteResult IoTController::ExecuteIoTCommand(
     char response[MAX_RESPONSE_BUFFER] = {0};
     int status = HttpPost("/iot/execute", json_buffer, response, sizeof(response));
     
+    if (status == 0) {
+        result.error_message = "Không thể kết nối tới máy chủ IoT";
+        ESP_LOGE(IOT_TAG, "IoT execute failed: connection error");
+        return result;
+    }
+    
     if (status != 200) {
-        result.error_message = "IoT execute request failed";
+        result.error_message = "Máy chủ IoT phản hồi lỗi: " + std::to_string(status);
         ESP_LOGE(IOT_TAG, "IoT execute failed, status: %d", status);
         return result;
     }
@@ -161,8 +167,8 @@ IoTExecuteResult IoTController::ExecuteIoTCommand(
     // Parse JSON response
     cJSON *json = cJSON_Parse(response);
     if (json == NULL) {
-        result.error_message = "Failed to parse IoT execute response";
-        ESP_LOGE(IOT_TAG, "%s", result.error_message.c_str());
+        result.error_message = "Không thể đọc phản hồi từ máy chủ";
+        ESP_LOGE(IOT_TAG, "Failed to parse IoT execute response");
         return result;
     }
     
