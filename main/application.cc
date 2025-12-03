@@ -99,11 +99,11 @@ void Application::CheckAssetsVersion() {
         display->SetChatMessage("system", Lang::Strings::PLEASE_WAIT);
 
         bool success = assets.Download(download_url, [display](int progress, size_t speed) -> void {
-            std::thread([display, progress, speed]() {
-                char buffer[32];
-                snprintf(buffer, sizeof(buffer), "%d%% %uKB/s", progress, speed / 1024);
-                display->SetChatMessage("system", buffer);
-            }).detach();
+            // Direct call is safe here - callback runs in download task context
+            // No need for separate thread which could cause heap fragmentation
+            char buffer[32];
+            snprintf(buffer, sizeof(buffer), "%d%% %uKB/s", progress, speed / 1024);
+            display->SetChatMessage("system", buffer);
         });
 
         board.SetPowerSaveMode(true);
@@ -674,10 +674,15 @@ void Application::OnWakeWordDetected() {
 #if CONFIG_SEND_WAKE_WORD_DATA
         // Encode and send the wake word data to the server
         while (auto packet = audio_service_.PopWakeWordPacket()) {
-            protocol_->SendAudio(std::move(packet));
+            if (protocol_ && !protocol_->SendAudio(std::move(packet))) {
+                ESP_LOGW(TAG, "Failed to send wake word audio packet");
+                break;
+            }
         }
         // Set the chat state to wake word detected
-        protocol_->SendWakeWordDetected(wake_word);
+        if (protocol_) {
+            protocol_->SendWakeWordDetected(wake_word);
+        }
         SetListeningMode(aec_mode_ == kAecOff ? kListeningModeAutoStop : kListeningModeRealtime);
 #else
         SetListeningMode(aec_mode_ == kAecOff ? kListeningModeAutoStop : kListeningModeRealtime);
@@ -803,11 +808,11 @@ bool Application::UpgradeFirmware(Ota& ota, const std::string& url) {
     vTaskDelay(pdMS_TO_TICKS(1000));
 
     bool upgrade_success = ota.StartUpgradeFromUrl(upgrade_url, [display](int progress, size_t speed) {
-        std::thread([display, progress, speed]() {
-            char buffer[32];
-            snprintf(buffer, sizeof(buffer), "%d%% %uKB/s", progress, speed / 1024);
-            display->SetChatMessage("system", buffer);
-        }).detach();
+        // Direct call is safe here - callback runs in OTA task context
+        // No need for separate thread which could cause heap fragmentation
+        char buffer[32];
+        snprintf(buffer, sizeof(buffer), "%d%% %uKB/s", progress, speed / 1024);
+        display->SetChatMessage("system", buffer);
     });
 
     if (!upgrade_success) {
@@ -848,10 +853,15 @@ void Application::WakeWordInvoke(const std::string& wake_word) {
 #if CONFIG_USE_AFE_WAKE_WORD || CONFIG_USE_CUSTOM_WAKE_WORD
         // Encode and send the wake word data to the server
         while (auto packet = audio_service_.PopWakeWordPacket()) {
-            protocol_->SendAudio(std::move(packet));
+            if (protocol_ && !protocol_->SendAudio(std::move(packet))) {
+                ESP_LOGW(TAG, "Failed to send wake word audio packet");
+                break;
+            }
         }
         // Set the chat state to wake word detected
-        protocol_->SendWakeWordDetected(wake_word);
+        if (protocol_) {
+            protocol_->SendWakeWordDetected(wake_word);
+        }
         SetListeningMode(aec_mode_ == kAecOff ? kListeningModeAutoStop : kListeningModeRealtime);
 #else
         SetListeningMode(aec_mode_ == kAecOff ? kListeningModeAutoStop : kListeningModeRealtime);
