@@ -79,6 +79,12 @@ private:
     std::string last_error_message_;
     AudioService audio_service_;
 
+    // Network reconnection with exponential backoff
+    int network_error_count_ = 0;
+    int network_reconnect_delay_ = 5;  // Initial delay in seconds
+    static constexpr int kMaxReconnectDelay = 300;  // Max 5 minutes
+    static constexpr int kMaxErrorBeforeReboot = 10;  // Reboot after 10 consecutive errors
+    
     bool has_server_time_ = false;
     bool aborted_ = false;
     int clock_ticks_ = 0;

@@ -417,11 +417,46 @@ void Application::Start() {
     }
 
     protocol_->OnConnected([this]() {
+        // Reset reconnection state on successful connection
+        network_error_count_ = 0;
+        network_reconnect_delay_ = 5;
+        ESP_LOGI(TAG, "Connected to server, reconnection state reset");
         DismissAlert();
     });
 
     protocol_->OnNetworkError([this](const std::string& message) {
+        network_error_count_++;
         last_error_message_ = message;
+        
+        ESP_LOGE(TAG, "Network error #%d: %s", network_error_count_, message.c_str());
+        
+        // Check if we should reboot after too many errors
+        if (network_error_count_ >= kMaxErrorBeforeReboot) {
+            ESP_LOGE(TAG, "Too many network errors (%d), rebooting...", network_error_count_);
+            Schedule([this]() {
+                Alert(Lang::Strings::ERROR, "Quá nhiều lỗi mạng, đang khởi động lại...", 
+                      "circle_xmark", Lang::Sounds::OGG_EXCLAMATION);
+                vTaskDelay(pdMS_TO_TICKS(3000));
+                Reboot();
+            });
+            return;
+        }
+        
+        // Calculate exponential backoff delay
+        int delay = network_reconnect_delay_;
+        network_reconnect_delay_ = std::min(network_reconnect_delay_ * 2, kMaxReconnectDelay);
+        
+        ESP_LOGW(TAG, "Will retry connection in %d seconds (attempt %d/%d)", 
+                 delay, network_error_count_, kMaxErrorBeforeReboot);
+        
+        // Show error with retry info
+        Schedule([this, delay]() {
+            char buffer[128];
+            snprintf(buffer, sizeof(buffer), "%s (thử lại sau %ds)", 
+                     last_error_message_.c_str(), delay);
+            Alert(Lang::Strings::ERROR, buffer, "wifi_slash", Lang::Sounds::OGG_EXCLAMATION);
+        });
+        
         xEventGroupSetBits(event_group_, MAIN_EVENT_ERROR);
     });
     protocol_->OnIncomingAudio([this](std::unique_ptr<AudioStreamPacket> packet) {
@@ -607,7 +642,9 @@ void Application::MainEventLoop() {
 
         if (bits & MAIN_EVENT_ERROR) {
             SetDeviceState(kDeviceStateIdle);
-            Alert(Lang::Strings::ERROR, last_error_message_.c_str(), "circle_xmark", Lang::Sounds::OGG_EXCLAMATION);
+            // Error message and retry info already shown in OnNetworkError callback
+            // The protocol layer will handle reconnection automatically
+            ESP_LOGW(TAG, "Network error handled, device state set to idle");
         }
 
         if (bits & MAIN_EVENT_SEND_AUDIO) {
