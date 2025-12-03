@@ -785,4 +785,61 @@ menu "TAIJIPAI_S3_CONFIG"
         启动双声道
 endmenu
 
+menu "MeiLin IoT Hybrid Mode"
+    config MEILIN_IOT_ENABLED
+        bool "Enable MeiLin IoT Hybrid Mode"
+        default n
+        help
+            Enable IoT control via MeiLin server.
+            When enabled, voice commands will be checked for IoT commands first.
+            If it's an IoT command, it will be handled locally.
+            If not, it will be forwarded to XiaoZhi Cloud as normal.
+
+    config MEILIN_IOT_SERVER
+        depends on MEILIN_IOT_ENABLED
+        string "MeiLin IoT Server URL"
+        default "http://192.168.1.227:5000"
+        help
+            The URL of MeiLin server for IoT commands.
+            Example: http://192.168.1.227:5000
+            Or: https://meilin.your-domain.com
+
+    config MEILIN_IOT_API_KEY
+        depends on MEILIN_IOT_ENABLED
+        string "MeiLin API Key"
+        default ""
+        help
+            Your API key from Telegram Bot registration.
+            This is required to authenticate with MeiLin server.
+            Get it from Telegram Bot: /menu -> Account -> View API Key
+
+    config MEILIN_IOT_TIMEOUT_MS
+        depends on MEILIN_IOT_ENABLED
+        int "IoT Request Timeout (ms)"
+        default 5000
+        range 1000 30000
+        help
+            Timeout for IoT check/execute requests in milliseconds.
+            If MeiLin server doesn't respond within this time,
+            the command will be forwarded to XiaoZhi Cloud.
+
+    config MEILIN_IOT_ENABLE_TTS
+        depends on MEILIN_IOT_ENABLED
+        bool "Enable IoT TTS Response"
+        default y
+        help
+            When enabled, MeiLin server will return TTS audio for IoT commands.
+            This provides voice feedback like "Đã bật đèn phòng khách".
+            Disable if you want silent IoT execution.
+
+    config MEILIN_IOT_FALLBACK_TO_XIAOZHI
+        depends on MEILIN_IOT_ENABLED
+        bool "Fallback to XiaoZhi on IoT Failure"
+        default y
+        help
+            When enabled, if MeiLin IoT server is unreachable or returns error,
+            the command will be forwarded to XiaoZhi Cloud.
+            This ensures the device still works even if MeiLin server is down.
+endmenu
+
 endmenu

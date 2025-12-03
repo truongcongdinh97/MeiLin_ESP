@@ -9,6 +9,8 @@
 #include "mcp_server.h"
 #include "assets.h"
 #include "settings.h"
+#include "iot_settings.h"
+#include "iot_handler.h"
 
 #include <cstring>
 #include <esp_log.h>
@@ -477,9 +479,29 @@ void Application::Start() {
             auto text = cJSON_GetObjectItem(root, "text");
             if (cJSON_IsString(text)) {
                 ESP_LOGI(TAG, ">> %s", text->valuestring);
-                Schedule([this, display, message = std::string(text->valuestring)]() {
-                    display->SetChatMessage("user", message.c_str());
-                });
+                std::string stt_text = text->valuestring;
+                
+                // Check if this is an IoT command (Hybrid Mode)
+                auto& iot_handler = IoTHandler::GetInstance();
+                if (iot_handler.IsAvailable()) {
+                    Schedule([this, display, stt_text]() {
+                        auto& handler = IoTHandler::GetInstance();
+                        if (handler.HandleSttResult(stt_text)) {
+                            // IoT command handled - abort any XiaoZhi TTS
+                            ESP_LOGI(TAG, "IoT command handled, aborting XiaoZhi response");
+                            AbortSpeaking(kAbortReasonNone);
+                            // Display is handled by IoTHandler callbacks
+                        } else {
+                            // Not IoT - show user message as normal
+                            display->SetChatMessage("user", stt_text.c_str());
+                        }
+                    });
+                } else {
+                    // IoT not available - normal flow
+                    Schedule([this, display, stt_text]() {
+                        display->SetChatMessage("user", stt_text.c_str());
+                    });
+                }
             }
         } else if (strcmp(type->valuestring, "llm") == 0) {
             auto emotion = cJSON_GetObjectItem(root, "emotion");
@@ -532,6 +554,22 @@ void Application::Start() {
         }
     });
     bool protocol_started = protocol_->Start();
+
+    // Initialize MeiLin IoT Hybrid Mode
+    IoTSettings::GetInstance().Initialize();
+    auto& iot_handler = IoTHandler::GetInstance();
+    iot_handler.Initialize();
+    
+    // Set IoT callbacks for display and TTS
+    iot_handler.SetDisplayCallback([display](const std::string& role, const std::string& message) {
+        display->SetChatMessage(role.c_str(), message.c_str());
+    });
+    
+    iot_handler.SetTtsCallback([this](const std::string& text, const std::string& audio_url) {
+        // For now, just log - TTS from MeiLin server can be played here
+        ESP_LOGI(TAG, "IoT TTS: %s (URL: %s)", text.c_str(), audio_url.c_str());
+        // TODO: Download and play audio from audio_url
+    });
 
     SystemInfo::PrintHeapStats();
     SetDeviceState(kDeviceStateIdle);
