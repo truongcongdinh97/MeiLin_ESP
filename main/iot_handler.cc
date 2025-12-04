@@ -1,7 +1,6 @@
 #include "iot_handler.h"
 #include "iot_controller.h"
 #include "iot_settings.h"
-
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -67,73 +66,108 @@ bool IoTHandler::HandleSttResult(const std::string& text) {
     if ((now - last_health_check_) > pdMS_TO_TICKS(HEALTH_CHECK_INTERVAL_MS)) {
         if (!controller_->CheckServerHealth()) {
             ESP_LOGW(TAG, "IoT server became unreachable");
+            // If MeiLin server is down, fallback to XiaoZhi
+            if (settings.IsFallbackEnabled()) {
+                ESP_LOGI(TAG, "MeiLin unreachable, fallback to XiaoZhi");
+                return false;
+            }
         }
         last_health_check_ = now;
     }
     
-    ESP_LOGI(TAG, "Checking IoT command: %s", text.c_str());
+    ESP_LOGI(TAG, "Processing with MeiLin: %s", text.c_str());
     
-    // Check and execute IoT command with retry
+    // First, check if this is an IoT command
     IoTExecuteResult result;
     bool is_iot = false;
     
     for (int retry = 0; retry < MAX_RETRIES; retry++) {
         is_iot = controller_->HandleIfIoTCommand(text, result);
         
-        if (!is_iot) {
-            // Not an IoT command, no need to retry
-            ESP_LOGD(TAG, "Not an IoT command, forwarding to XiaoZhi");
-            return false;
-        }
-        
-        if (result.success) {
-            // Success, break out of retry loop
+        if (is_iot && result.success) {
+            // IoT command executed successfully
             break;
         }
         
-        // Failed, retry if not last attempt
-        if (retry < MAX_RETRIES - 1) {
+        if (is_iot && !result.success && retry < MAX_RETRIES - 1) {
+            // IoT command failed, retry
             ESP_LOGW(TAG, "IoT command failed, retry %d/%d: %s", 
+                     retry + 1, MAX_RETRIES, result.error_message.c_str());
+            vTaskDelay(pdMS_TO_TICKS(RETRY_DELAY_MS));
+            continue;
+        }
+        
+        // Not an IoT command OR IoT failed after retries
+        break;
+    }
+    
+    if (is_iot) {
+        // This was an IoT command
+        last_result_ = result;
+        
+        if (result.success) {
+            ESP_LOGI(TAG, "IoT command executed: %s", result.response_text.c_str());
+            ShowMessage("user", text);
+            ShowMessage("assistant", result.response_text);
+            
+            if (settings.IsTtsEnabled() && !result.audio_url.empty()) {
+                PlayTts(result.response_text, result.audio_url);
+            }
+        } else {
+            ESP_LOGE(TAG, "IoT command failed: %s", result.error_message.c_str());
+            std::string error_msg = "Không thể thực hiện lệnh: " + result.error_message;
+            ShowMessage("assistant", error_msg);
+        }
+        
+        return true;
+    }
+    
+    // NOT an IoT command - send to MeiLin for regular chat
+    ESP_LOGI(TAG, "Not IoT, sending to MeiLin chat: %s", text.c_str());
+    
+    for (int retry = 0; retry < MAX_RETRIES; retry++) {
+        result = controller_->SendChatToMeiLin(text);
+        
+        if (result.success) {
+            break;
+        }
+        
+        if (retry < MAX_RETRIES - 1) {
+            ESP_LOGW(TAG, "MeiLin chat failed, retry %d/%d: %s", 
                      retry + 1, MAX_RETRIES, result.error_message.c_str());
             vTaskDelay(pdMS_TO_TICKS(RETRY_DELAY_MS));
         }
     }
     
-    // Store result
     last_result_ = result;
     
     if (result.success) {
-        ESP_LOGI(TAG, "IoT command executed successfully: %s", result.response_text.c_str());
+        ESP_LOGI(TAG, "MeiLin response: %s", result.response_text.c_str());
         
-        // Display the response
         ShowMessage("user", text);
         ShowMessage("assistant", result.response_text);
         
-        // Play TTS if available and enabled
-        if (settings.IsTtsEnabled()) {
-            if (!result.audio_url.empty()) {
-                PlayTts(result.response_text, result.audio_url);
-            } else {
-                // No audio URL, use local TTS fallback
-                ESP_LOGW(TAG, "No audio URL provided, using text-only response");
-            }
-        }
-    } else {
-        ESP_LOGE(TAG, "IoT command failed after %d retries: %s", 
-                 MAX_RETRIES, result.error_message.c_str());
-        
-        // Check if should fallback to XiaoZhi
-        if (settings.IsFallbackEnabled()) {
-            ESP_LOGI(TAG, "Fallback enabled, forwarding to XiaoZhi");
-            return false;
+        if (settings.IsTtsEnabled() && !result.audio_url.empty()) {
+            PlayTts(result.response_text, result.audio_url);
         }
         
-        // Show error message with user-friendly text
-        std::string error_msg = "Không thể thực hiện lệnh: " + result.error_message;
-        ShowMessage("assistant", error_msg);
+        return true;
     }
     
-    return true;  // IoT was handled (successfully or not)
+    // MeiLin chat failed
+    ESP_LOGE(TAG, "MeiLin chat failed: %s", result.error_message.c_str());
+    
+    // Check if should fallback to XiaoZhi
+    if (settings.IsFallbackEnabled()) {
+        ESP_LOGI(TAG, "Fallback enabled, forwarding to XiaoZhi");
+        return false;  // Let XiaoZhi handle it
+    }
+    
+    // Show error to user
+    std::string error_msg = "Xin lỗi, MeiLin không thể trả lời: " + result.error_message;
+    ShowMessage("assistant", error_msg);
+    
+    return true;  // Handled (with error)
 }
 
 void IoTHandler::RefreshDeviceList() {

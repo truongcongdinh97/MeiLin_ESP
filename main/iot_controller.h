@@ -96,6 +96,13 @@ public:
      */
     bool CheckServerHealth();
 
+    /**
+     * @brief Send chat message to MeiLin (for ALL conversations, not just IoT)
+     * @param text User's message
+     * @return IoTExecuteResult with response text and audio URL
+     */
+    IoTExecuteResult SendChatToMeiLin(const std::string& text);
+
     // Configuration
     void SetServer(const std::string& server) { meilin_server_ = server; }
     void SetApiKey(const std::string& key) { api_key_ = key; }

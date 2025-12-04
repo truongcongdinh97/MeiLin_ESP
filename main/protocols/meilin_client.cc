@@ -411,7 +411,7 @@ std::string MeiLinClient::GetTimestamp() {
     strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &timeinfo);
     
     // Add milliseconds
-    char final_buffer[40];
+    char final_buffer[48];  // Increased buffer size
     snprintf(final_buffer, sizeof(final_buffer), "%s.%03ldZ", 
              buffer, tv.tv_usec / 1000);
     

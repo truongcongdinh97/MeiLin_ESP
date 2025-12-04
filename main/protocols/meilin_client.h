@@ -71,11 +71,6 @@ public:
     // ============================================================
     
     /**
-     * Destructor
-     */
-    ~MeiLinClient();
-    
-    /**
      * Send wake word detection event to backend
      * @param confidence Wake word detection confidence (0.0 - 1.0)
      * @return true if successful

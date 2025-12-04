@@ -288,6 +288,68 @@ bool IoTController::CheckServerHealth() {
     return healthy;
 }
 
+IoTExecuteResult IoTController::SendChatToMeiLin(const std::string& text) {
+    IoTExecuteResult result = {false, "", "", ""};
+    
+    if (!IsConfigured()) {
+        result.error_message = "MeiLin chưa được cấu hình";
+        ESP_LOGW(IOT_TAG, "%s", result.error_message.c_str());
+        return result;
+    }
+    
+    // Build JSON payload for /esp/chat endpoint
+    // api_key_ contains the device_api_key (meilin_dev_xxxx)
+    char json_buffer[2048];
+    snprintf(json_buffer, sizeof(json_buffer),
+             "{\"message\":\"%s\",\"device_api_key\":\"%s\"}",
+             text.c_str(),
+             api_key_.c_str());
+    
+    char response[MAX_RESPONSE_BUFFER] = {0};
+    int status = HttpPost("/esp/chat", json_buffer, response, sizeof(response));
+    
+    if (status == 0) {
+        result.error_message = "Không thể kết nối tới MeiLin server";
+        ESP_LOGE(IOT_TAG, "MeiLin chat failed: connection error");
+        return result;
+    }
+    
+    if (status != 200) {
+        result.error_message = "MeiLin phản hồi lỗi: " + std::to_string(status);
+        ESP_LOGE(IOT_TAG, "MeiLin chat failed, status: %d", status);
+        return result;
+    }
+    
+    // Parse JSON response
+    cJSON *json = cJSON_Parse(response);
+    if (json == NULL) {
+        result.error_message = "Không thể đọc phản hồi từ MeiLin";
+        ESP_LOGE(IOT_TAG, "Failed to parse MeiLin chat response");
+        return result;
+    }
+    
+    result.success = true;
+    
+    // Extract response text
+    cJSON *response_text = cJSON_GetObjectItem(json, "response");
+    if (response_text && cJSON_IsString(response_text)) {
+        result.response_text = response_text->valuestring;
+    }
+    
+    // Extract audio URL (optional)
+    cJSON *audio_url = cJSON_GetObjectItem(json, "audio_url");
+    if (audio_url && cJSON_IsString(audio_url)) {
+        result.audio_url = audio_url->valuestring;
+    }
+    
+    ESP_LOGI(IOT_TAG, "MeiLin chat result: response=%s, audio=%s",
+             result.response_text.c_str(), 
+             result.audio_url.empty() ? "(none)" : result.audio_url.c_str());
+    
+    cJSON_Delete(json);
+    return result;
+}
+
 int IoTController::HttpPost(
     const std::string& endpoint,
     const char* json_payload,
