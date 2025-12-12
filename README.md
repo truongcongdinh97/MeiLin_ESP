@@ -1,31 +1,31 @@
 # MeiLin ESP32 Firmware
 
-**Firmware tương thích hoàn toàn với XiaoZhi hardware configurations**
+**Firmware AI Voice Assistant cho ESP32 với custom wake word**
 
 [![ESP-IDF](https://img.shields.io/badge/ESP--IDF-v5.3-blue)](https://docs.espressif.com/projects/esp-idf/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ## 🎯 Giới Thiệu
 
-MeiLin ESP32 Firmware là firmware AI Voice Assistant, được thiết kế để tương thích hoàn toàn với **XiaoZhi hardware** (80+ boards). 
+MeiLin ESP32 Firmware là firmware AI Voice Assistant, được thiết kế để tương thích với **ESP32 hardware** (80+ boards). 
 
-### 🌟 Ba Chế Độ Sử Dụng
+### 🌟 Các Chế Độ Sử Dụng
 
 | Mode | LLM/TTS | Knowledge Base | Chi phí | Tính năng |
 |------|---------|----------------|---------|-----------|
-| **XiaoZhi Pure** | XiaoZhi Cloud | ❌ | **$0** | AI chat cơ bản |
-| **🆕 Hybrid Mode** | XiaoZhi Cloud | ✅ MeiLin RAG | **$0** | AI + Custom knowledge |
+| **MeiLin Basic** | DeepSeek + Edge TTS | ✅ MeiLin RAG | **$0** | AI + Custom knowledge |
 | **MeiLin Full** | Self-hosted | ✅ Full | API costs | Full customization |
 
-> **💡 Mới: Hybrid Mode cho phép dùng knowledge base của MeiLin MIỄN PHÍ + XiaoZhi LLM!**
+> **💡 Mới: MeiLin Mode cho phép dùng knowledge base của MeiLin MIỄN PHÍ + LLM/TTS miễn phí!**
 
 ---
 
-## 🔥 Hybrid Mode (Recommended cho người mới)
+## 🔥 MeiLin Mode (Recommended cho người mới)
 
 Chế độ này cho phép bạn:
 - ✅ **Dùng MeiLin knowledge base** (context về MeiLin persona)
-- ✅ **XiaoZhi LLM/TTS miễn phí** 
+- ✅ **DeepSeek LLM miễn phí** 
+- ✅ **Edge TTS miễn phí**
 - ✅ **Custom wake word**
 - ❌ Không cần tự host server
 
@@ -34,10 +34,10 @@ Chế độ này cho phép bạn:
 [ESP32] --query--> [MeiLin Public RAG API] --context--> [ESP32]
                                                             |
                                                             v
-                                                    [XiaoZhi Cloud]
+                                                    [DeepSeek API]
                                                             |
                                                             v
-                                                    [Response + TTS]
+                                                    [Response + Edge TTS]
 ```
 
 ### Đăng ký API key (1 lần):
@@ -66,9 +66,9 @@ Response:
 
 ## ✨ Tính Năng
 
-### ✅ Tương Thích Hoàn Toàn
-- **80+ ESP32 Boards** - Giống hệt XiaoZhi
-- **Pin Configurations** - Identical pin mappings
+### ✅ Tương Thích Rộng
+- **80+ ESP32 Boards** - Hỗ trợ nhiều board phổ biến
+- **Pin Configurations** - Cấu hình pin linh hoạt
 - **Hardware Abstraction** - Tương thích với tất cả peripherals
 - **Display Support** - LCD, OLED, ePaper
 - **Audio Codecs** - Multiple audio format support
@@ -108,13 +108,13 @@ Response:
 - **Camera** - Boards với camera modules
 - **Audio** - Boards với audio codecs
 
-## 🚀 Quick Start (XiaoZhi Mode - MIỄN PHÍ)
+## 🚀 Quick Start (MeiLin Mode - MIỄN PHÍ)
 
 ### Cách 1: Tải firmware sẵn (Nhanh nhất)
 1. Tải firmware từ [Releases](https://github.com/YOUR_GITHUB_USERNAME/MeiLin_ESP/releases)
 2. Flash bằng [ESP Web Flasher](https://web.esphome.io/) hoặc `esptool`
 3. Kết nối WiFi qua Bluetooth/SmartConfig
-4. **Xong!** Nói "Hi Lexin" để bắt đầu chat
+4. **Xong!** Nói "Hi MeiLin" để bắt đầu chat
 
 ### Cách 2: Build từ source
 ```bash
@@ -125,8 +125,8 @@ cd MeiLin_ESP
 # Chọn board
 idf.py set-target esp32s3
 idf.py menuconfig
-# → Xiaozhi Assistant → Board Type → Chọn board của bạn
-# → Xiaozhi Assistant → Default Language → Vietnamese
+# → MeiLin Assistant → Board Type → Chọn board của bạn
+# → MeiLin Assistant → Default Language → Vietnamese
 
 # Build và flash
 idf.py build
@@ -135,10 +135,10 @@ idf.py -p COM3 flash monitor
 
 ### Sau khi flash:
 1. **Kết nối WiFi**: Dùng SmartConfig hoặc web portal
-2. **Đăng ký XiaoZhi**: Truy cập xiaozhi.me để đăng ký device
-3. **Sử dụng**: Nói **"Hi Lexin"** → Đặt câu hỏi → Nhận trả lời!
+2. **Đăng ký MeiLin**: Truy cập Telegram Bot để đăng ký device
+3. **Sử dụng**: Nói **"Hi MeiLin"** → Đặt câu hỏi → Nhận trả lời!
 
-> 💡 **Mặc định dùng XiaoZhi Cloud (miễn phí)** - Không cần setup server!
+> 💡 **Mặc định dùng MeiLin Server (miễn phí)** - Không cần setup server!
 
 ---
 
@@ -158,7 +158,7 @@ docker-compose up -d
 ### Bước 2: Cấu hình ESP32
 ```bash
 idf.py menuconfig
-# → Xiaozhi Assistant → OTA URL → https://your-domain.com/api/ota/
+# → MeiLin Assistant → OTA URL → https://your-domain.com/api/ota/
 ```
 
 ### Bước 3: Flash
@@ -182,7 +182,7 @@ idf.py build flash
 ## 🔧 Hardware Setup
 
 ### Pin Mappings
-Tất cả pin mappings đều giống hệt XiaoZhi:
+Tất cả pin mappings đều được cấu hình sẵn:
 
 | Component | Pin | Description |
 |-----------|-----|-------------|
@@ -307,4 +307,4 @@ Nếu bạn gặp vấn đề:
 
 ---
 
-**MeiLin ESP32 Firmware - Tương thích hoàn toàn với XiaoZhi hardware!** 🚀
+**MeiLin ESP32 Firmware - AI Voice Assistant với custom wake word!** 🚀
