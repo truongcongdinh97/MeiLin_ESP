@@ -46,11 +46,13 @@
 // DIN            GPIO7            Data input to speaker
 // BCLK           GPIO15           Bit Clock
 // LRC            GPIO16           Left/Right Clock
+// SD             GPIO18           Shutdown (HIGH=on, LOW=off)
 // GAIN           NC or GND        Gain control (optional)
 
 #define AUDIO_I2S_SPK_GPIO_DOUT GPIO_NUM_7
 #define AUDIO_I2S_SPK_GPIO_BCLK GPIO_NUM_15
 #define AUDIO_I2S_SPK_GPIO_LRCK GPIO_NUM_16
+#define AUDIO_CODEC_PA_PIN      GPIO_NUM_18   // MAX98357A SD (Shutdown/Enable)
 
 #else
 
@@ -148,6 +150,6 @@
 // =============================================================================
 // MCP Test: Control a lamp (optional)
 // =============================================================================
-#define LAMP_GPIO GPIO_NUM_18
+#define LAMP_GPIO GPIO_NUM_NC  // Disabled - GPIO18 used for speaker SD
 
 #endif // _BOARD_CONFIG_H_

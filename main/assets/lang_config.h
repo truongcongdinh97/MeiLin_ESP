@@ -1,68 +1,68 @@
 // Auto-generated language config
-// Language: vi-VN with en-US fallback
+// Language: en-US with en-US fallback
 #pragma once
 
 #include <string_view>
 
-#ifndef vi_vn
-    #define vi_vn  // 預設語言
+#ifndef en_us
+    #define en_us  // 預設語言
 #endif
 
 namespace Lang {
     // 语言元数据
-    constexpr const char* CODE = "vi-VN";
+    constexpr const char* CODE = "en-US";
 
     // 字符串资源 (en-US as fallback for missing keys)
     namespace Strings {
-        constexpr const char* ACCESS_VIA_BROWSER = " URL cấu hình: ";
-        constexpr const char* ACTIVATION = "Kích hoạt";
-        constexpr const char* BATTERY_CHARGING = "Đang sạc";
-        constexpr const char* BATTERY_FULL = "Pin đầy";
-        constexpr const char* BATTERY_LOW = "Pin yếu";
-        constexpr const char* BATTERY_NEED_CHARGE = "Pin yếu, vui lòng sạc";
-        constexpr const char* CHECKING_NEW_VERSION = "Đang kiểm tra phiên bản mới...";
-        constexpr const char* CHECK_NEW_VERSION_FAILED = "Kiểm tra phiên bản mới thất bại, sẽ thử lại sau %d giây: %s";
-        constexpr const char* CONNECTED_TO = "Đã kết nối đến ";
-        constexpr const char* CONNECTING = "Đang kết nối...";
-        constexpr const char* CONNECTION_SUCCESSFUL = "Kết nối thành công";
-        constexpr const char* CONNECT_TO = "Kết nối đến ";
-        constexpr const char* CONNECT_TO_HOTSPOT = "Điểm phát sóng: ";
-        constexpr const char* DETECTING_MODULE = "Đang phát hiện module...";
-        constexpr const char* DOWNLOAD_ASSETS_FAILED = "Tải xuống tài nguyên thất bại";
-        constexpr const char* ENTERING_WIFI_CONFIG_MODE = "Đang vào chế độ cấu hình Wi-Fi...";
-        constexpr const char* ERROR = "Lỗi";
-        constexpr const char* FOUND_NEW_ASSETS = "Tìm thấy tài nguyên mới: %s";
-        constexpr const char* HELLO_MY_FRIEND = "Xin chào, bạn của tôi!";
-        constexpr const char* INFO = "Thông tin";
-        constexpr const char* INITIALIZING = "Đang khởi tạo...";
-        constexpr const char* LISTENING = "Đang lắng nghe...";
-        constexpr const char* LOADING_ASSETS = "Đang tải tài nguyên...";
-        constexpr const char* LOADING_PROTOCOL = "Đang đăng nhập...";
-        constexpr const char* MAX_VOLUME = "Âm lượng tối đa";
-        constexpr const char* MUTED = "Tắt tiếng";
-        constexpr const char* NEW_VERSION = "Phiên bản mới ";
-        constexpr const char* OTA_UPGRADE = "Nâng cấp OTA";
-        constexpr const char* PIN_ERROR = "Vui lòng cắm thẻ SIM";
-        constexpr const char* PLEASE_WAIT = "Vui lòng đợi...";
-        constexpr const char* REGISTERING_NETWORK = "Đang chờ mạng...";
-        constexpr const char* REG_ERROR = "Không thể truy cập mạng, vui lòng kiểm tra trạng thái thẻ SIM";
-        constexpr const char* RTC_MODE_OFF = "Tắt AEC";
-        constexpr const char* RTC_MODE_ON = "Bật AEC";
-        constexpr const char* SCANNING_WIFI = "Đang quét Wi-Fi...";
-        constexpr const char* SERVER_ERROR = "Gửi thất bại, vui lòng kiểm tra mạng";
-        constexpr const char* SERVER_NOT_CONNECTED = "Không thể kết nối đến dịch vụ, vui lòng thử lại sau";
-        constexpr const char* SERVER_NOT_FOUND = "Đang tìm dịch vụ khả dụng";
-        constexpr const char* SERVER_TIMEOUT = "Hết thời gian chờ phản hồi";
-        constexpr const char* SPEAKING = "Đang nói...";
-        constexpr const char* STANDBY = "Chờ";
-        constexpr const char* SWITCH_TO_4G_NETWORK = "Đang chuyển sang 4G...";
-        constexpr const char* SWITCH_TO_WIFI_NETWORK = "Đang chuyển sang Wi-Fi...";
-        constexpr const char* UPGRADE_FAILED = "Nâng cấp thất bại";
-        constexpr const char* UPGRADING = "Hệ thống đang nâng cấp...";
-        constexpr const char* VERSION = "Phiên bản ";
-        constexpr const char* VOLUME = "Âm lượng ";
-        constexpr const char* WARNING = "Cảnh báo";
-        constexpr const char* WIFI_CONFIG_MODE = "Chế độ cấu hình Wi-Fi";
+        constexpr const char* ACCESS_VIA_BROWSER = " Config URL: ";
+        constexpr const char* ACTIVATION = "Activation";
+        constexpr const char* BATTERY_CHARGING = "Charging";
+        constexpr const char* BATTERY_FULL = "Battery full";
+        constexpr const char* BATTERY_LOW = "Low battery";
+        constexpr const char* BATTERY_NEED_CHARGE = "Low battery, please charge";
+        constexpr const char* CHECKING_NEW_VERSION = "Checking for new version...";
+        constexpr const char* CHECK_NEW_VERSION_FAILED = "Check for new version failed, will retry in %d seconds: %s";
+        constexpr const char* CONNECTED_TO = "Connected to ";
+        constexpr const char* CONNECTING = "Connecting...";
+        constexpr const char* CONNECTION_SUCCESSFUL = "Connection Successful";
+        constexpr const char* CONNECT_TO = "Connect to ";
+        constexpr const char* CONNECT_TO_HOTSPOT = "Hotspot: ";
+        constexpr const char* DETECTING_MODULE = "Detecting module...";
+        constexpr const char* DOWNLOAD_ASSETS_FAILED = "Failed to download assets";
+        constexpr const char* ENTERING_WIFI_CONFIG_MODE = "Entering Wi-Fi configuration mode...";
+        constexpr const char* ERROR = "Error";
+        constexpr const char* FOUND_NEW_ASSETS = "Found new assets: %s";
+        constexpr const char* HELLO_MY_FRIEND = "Hello, my friend!";
+        constexpr const char* INFO = "Information";
+        constexpr const char* INITIALIZING = "Initializing...";
+        constexpr const char* LISTENING = "Listening...";
+        constexpr const char* LOADING_ASSETS = "Loading assets...";
+        constexpr const char* LOADING_PROTOCOL = "Logging in...";
+        constexpr const char* MAX_VOLUME = "Max volume";
+        constexpr const char* MUTED = "Muted";
+        constexpr const char* NEW_VERSION = "New version ";
+        constexpr const char* OTA_UPGRADE = "OTA Upgrade";
+        constexpr const char* PIN_ERROR = "Please insert SIM card";
+        constexpr const char* PLEASE_WAIT = "Please wait...";
+        constexpr const char* REGISTERING_NETWORK = "Waiting for network...";
+        constexpr const char* REG_ERROR = "Unable to access network, please check SIM card status";
+        constexpr const char* RTC_MODE_OFF = "AEC Off";
+        constexpr const char* RTC_MODE_ON = "AEC On";
+        constexpr const char* SCANNING_WIFI = "Scanning Wi-Fi...";
+        constexpr const char* SERVER_ERROR = "Sending failed, please check the network";
+        constexpr const char* SERVER_NOT_CONNECTED = "Unable to connect to service, please try again later";
+        constexpr const char* SERVER_NOT_FOUND = "Looking for available service";
+        constexpr const char* SERVER_TIMEOUT = "Waiting for response timeout";
+        constexpr const char* SPEAKING = "Speaking...";
+        constexpr const char* STANDBY = "Standby";
+        constexpr const char* SWITCH_TO_4G_NETWORK = "Switching to 4G...";
+        constexpr const char* SWITCH_TO_WIFI_NETWORK = "Switching to Wi-Fi...";
+        constexpr const char* UPGRADE_FAILED = "Upgrade failed";
+        constexpr const char* UPGRADING = "System is upgrading...";
+        constexpr const char* VERSION = "Ver ";
+        constexpr const char* VOLUME = "Volume ";
+        constexpr const char* WARNING = "Warning";
+        constexpr const char* WIFI_CONFIG_MODE = "Wi-Fi Configuration Mode";
     }
 
     // 音效资源 (en-US as fallback for missing audio files)

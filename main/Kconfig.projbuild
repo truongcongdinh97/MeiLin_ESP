@@ -198,6 +198,9 @@ choice BOARD_TYPE
     config BOARD_TYPE_MEILIN_ESP32CAM
         bool "MeiLin ESP32-CAM (Audio only)"
         depends on IDF_TARGET_ESP32
+    config BOARD_TYPE_ESP32S3_N16R8
+        bool "Generic ESP32-S3-N16R8 (INMP441 + MAX98357A + GC9A01)"
+        depends on IDF_TARGET_ESP32S3
     config BOARD_TYPE_LICHUANG_DEV_S3
         bool "立创·实战派 ESP32-S3"
         depends on IDF_TARGET_ESP32S3
